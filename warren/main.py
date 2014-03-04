@@ -101,8 +101,11 @@ class RabbitMQCtl(object):
 
 def main():
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
-    usage = 'Usage: %prog <remote nodes...>'
-    parser = OptionParser()
+    usage = 'Usage: %prog <nodes...>'
+    description = 'Checks the current cluster status of the RabbitMQ node. ' \
+        'If the node is unclustered, warren attempts to cluster with the ' \
+        'given list of RabbitMQ nodes.'
+    parser = OptionParser(usage=usage, description=description)
     options, extra = parser.parse_args()
     known_nodes = set(extra)
 
