@@ -50,20 +50,17 @@ class RabbitMQCtl(object):
             raise Exception(msg)
         return stdout.splitlines()
 
-    def _parse_node_list(self, node_list):
-        nodes = set()
-        for node in node_list.split(','):
-            if node.startswith("'") and node.endswith("'"):
-                nodes.add(node[1:-1])
-            else:
-                nodes.add(node)
-        return nodes
+    def _trim_quotes(self, node_name):
+        if node.startswith("'") and node.endswith("'"):
+            return node[1:-1]
+        else:
+            return node
 
     def get_cluster_status(self):
         output = self._run_rabbitmqctl(['cluster_status'])
         match = re.match('^Cluster status of node (.*) ...$', output[0])
         if match:
-            local_node = match.group(1)
+            local_node = self._trim_quotes(match.group(1))
         else:
             raise Exception('Unexpected header line: {0!r}'.format(output[0]))
         match = re.match('^...done', output[-1])
@@ -77,7 +74,8 @@ class RabbitMQCtl(object):
         node_info = match.group(1)
         nodes = set()
         for match in re.finditer(r'{.*?,\[(.*?)\]}', node_info):
-            nodes |= self._parse_node_list(match.group(1))
+            for node_name in match.group(1).split(','):
+                nodes.add(self._trim_quotes(node_name))
         return local_node, nodes
 
     def join_cluster(self, node_name):
