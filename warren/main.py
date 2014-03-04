@@ -124,7 +124,7 @@ def main():
         sys.exit(2)
     known_nodes.add(local_node)
 
-    logging.info('Local cluster node: {0}'.format(', '.join(local_node)))
+    logging.info('Local cluster node: {0}'.format(local_node))
     logging.info('Current cluster nodes: {0}'.format(', '.join(cluster_nodes)))
     logging.info('Known cluster nodes: {0}'.format(', '.join(known_nodes)))
 
