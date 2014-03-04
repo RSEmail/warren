@@ -119,7 +119,10 @@ def main():
     logging.info('Current cluster nodes: {0!r}'.format(cluster_nodes))
     logging.info('Known cluster nodes: {0!r}'.format(known_nodes))
 
-    if len(cluster_nodes) == 1 and len(known_nodes) > 1:
+    if cluster_nodes == known_nodes:
+        logging.info('This node is clustered correctly.')
+
+    elif len(cluster_nodes) == 1:
         for node_name in known_nodes:
             if node_name != local_node:
                 logging.info('Attempting to join: {0!r}'.format(node_name))
@@ -128,14 +131,9 @@ def main():
                     break
                 except Exception as exc:
                     logging.error(str(exc))
-
-    elif cluster_nodes > known_nodes:
-        unknown_nodes = cluster_nodes - known_nodes
-        for node_name in unknown_nodes:
-            try:
-                ctl.forget_cluster_node(node_name)
-            except Exception as exc:
-                logging.error(str(exc))
+        else:
+            logging.warning('Node could not be clustered.')
+            sys.exit(1)
 
 
 # vim:et:fdm=marker:sts=4:sw=4:ts=4
