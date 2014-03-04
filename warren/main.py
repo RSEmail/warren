@@ -50,7 +50,7 @@ class RabbitMQCtl(object):
             raise Exception(msg)
         return stdout.splitlines()
 
-    def _trim_quotes(self, node_name):
+    def _trim_quotes(self, node):
         if node.startswith("'") and node.endswith("'"):
             return node[1:-1]
         else:
