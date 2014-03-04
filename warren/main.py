@@ -100,14 +100,20 @@ class RabbitMQCtl(object):
 
 
 def main():
-    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
     usage = 'Usage: %prog <nodes...>'
     description = 'Checks the current cluster status of the RabbitMQ node. ' \
         'If the node is unclustered, warren attempts to cluster with the ' \
         'given list of RabbitMQ nodes.'
     parser = OptionParser(usage=usage, description=description)
+    parser.add_option('--verbose', action='store_true',
+                      help='Enable verbose output.')
     options, extra = parser.parse_args()
     known_nodes = set(extra)
+
+    if options.verbose:
+        logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+    else:
+        logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
     ctl = RabbitMQCtl()
 
@@ -115,12 +121,12 @@ def main():
         local_node, cluster_nodes = ctl.get_cluster_status()
     except Exception as exc:
         logging.error(str(exc))
-        sys.exit(1)
+        sys.exit(2)
     known_nodes.add(local_node)
 
-    logging.info('Local cluster node: {0!r}'.format(local_node))
-    logging.info('Current cluster nodes: {0!r}'.format(cluster_nodes))
-    logging.info('Known cluster nodes: {0!r}'.format(known_nodes))
+    logging.info('Local cluster node: {0}'.format(', '.join(local_node)))
+    logging.info('Current cluster nodes: {0}'.format(', '.join(cluster_nodes)))
+    logging.info('Known cluster nodes: {0}'.format(', '.join(known_nodes)))
 
     if cluster_nodes == known_nodes:
         logging.info('This node is clustered correctly.')
@@ -128,7 +134,7 @@ def main():
     elif len(cluster_nodes) == 1:
         for node_name in known_nodes:
             if node_name != local_node:
-                logging.info('Attempting to join: {0!r}'.format(node_name))
+                logging.info('Attempting to join with: {0}'.format(node_name))
                 try:
                     ctl.join_cluster(node_name)
                     break
@@ -136,7 +142,7 @@ def main():
                     logging.error(str(exc))
         else:
             logging.warning('Node could not be clustered.')
-            sys.exit(1)
+            sys.exit(2)
 
 
 # vim:et:fdm=marker:sts=4:sw=4:ts=4
