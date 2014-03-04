@@ -10,7 +10,7 @@ Source:         warren-%{version}.tar.gz
 
 BuildArch:      noarch
 BuildRequires:  python, python-setuptools
-Requires:       python
+Requires:       python, python-setuptools
 
 %description
 Utility for managing a cluster of RabbitMQ nodes.
