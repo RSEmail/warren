@@ -50,6 +50,15 @@ class RabbitMQCtl(object):
             raise Exception(msg)
         return stdout.splitlines()
 
+    def _parse_node_list(self, node_list):
+        nodes = set()
+        for node in node_list.split(','):
+            if node.startswith("'") and node.endswith("'"):
+                nodes.add(node[1:-1])
+            else:
+                nodes.add(node)
+        return nodes
+
     def get_cluster_status(self):
         output = self._run_rabbitmqctl(['cluster_status'])
         match = re.match('^Cluster status of node (.*) ...$', output[0])
@@ -68,7 +77,7 @@ class RabbitMQCtl(object):
         node_info = match.group(1)
         nodes = set()
         for match in re.finditer(r'{.*?,\[(.*?)\]}', node_info):
-            nodes |= set(match.group(1).split(','))
+            nodes |= self._parse_node_list(match.group(1))
         return local_node, nodes
 
     def join_cluster(self, node_name):
