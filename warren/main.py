@@ -28,6 +28,8 @@ import logging
 from socket import getfqdn
 from optparse import OptionParser
 
+from warren import __version__
+
 
 class RabbitMQCtl(object):
 
@@ -101,10 +103,12 @@ class RabbitMQCtl(object):
 
 def main():
     usage = 'Usage: %prog <nodes...>'
+    version = '%prog '+__version__
     description = 'Checks the current cluster status of the RabbitMQ node. ' \
         'If the node is unclustered, warren attempts to cluster with the ' \
         'given list of RabbitMQ nodes.'
-    parser = OptionParser(usage=usage, description=description)
+    parser = OptionParser(usage=usage, description=description,
+                          version=version)
     parser.add_option('--verbose', action='store_true',
                       help='Enable verbose output.')
     options, extra = parser.parse_args()
