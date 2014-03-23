@@ -113,15 +113,16 @@ def main():
     description = 'Checks the current cluster status of the RabbitMQ node. ' \
         'If the node is unclustered, warren attempts to cluster with the ' \
         'given list of RabbitMQ nodes. Nodes can be provided on the ' \
-        'command line or by config file. Warren looks for configuration in ' \
-        '/etc/warren.conf by default. Config files look for a comma ' \
-        'delimited list \'nodes\' under section \'[warren]\'.'
+        'command line or by config file. Config files look for a ' \
+        'comma delimited list \'nodes\' under section \'[warren]\'.'
     parser = OptionParser(usage=usage, description=description,
                           version=version)
     parser.add_option('--verbose', action='store_true',
                       help='Enable verbose output.')
-    parser.add_option('--config', action='append', metavar='FILE',
-                      help='Check for nodes in this config file.')
+    parser.add_option('--config', metavar='FILE',
+                      default='/etc/rabbitmq/warren.conf',
+                      help='Check for nodes in this config file, '
+                      'default %default.')
     parser.add_option('--forget-node', action='append', metavar='NODE',
                       help='Permanently NODE from the cluster. '
                       'Use with caution.')
@@ -129,7 +130,7 @@ def main():
     expected_nodes = set(extra)
 
     cfg = SafeConfigParser()
-    cfg.read(options.config or ['/etc/warren.conf'])
+    cfg.read([options.config])
 
     try:
         cfg_nodes = cfg.get('warren', 'nodes')
