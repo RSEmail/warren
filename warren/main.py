@@ -32,6 +32,12 @@ from ConfigParser import SafeConfigParser, NoSectionError, NoOptionError
 from warren import __version__
 
 
+def _log_error():
+    exc_type, exc_val, exc_tv = sys.exc_info()
+    msg = '{0}: {1!s}'.format(exc_type.__name__, exc_val)
+    logging.error(msg)
+
+
 class RabbitMQCtl(object):
 
     def __init__(self, rabbitmqctl='rabbitmqctl'):
@@ -92,14 +98,13 @@ class RabbitMQCtl(object):
         try:
             self._run_rabbitmqctl(['stop_app'], node_name)
         except Exception as exc:
-            logging.error(str(exc))
+            logging.error('Could not stop RabbitMQ app.')
         args = ['forget_cluster_node', node_name]
         self._run_rabbitmqctl(['forget_cluster_node', node_name])
         try:
-            self._run_rabbitmqctl(['reset'], node_name)
             self._run_rabbitmqctl(['start_app'], node_name)
         except Exception as exc:
-            logging.error(str(exc))
+            logging.error('Could not start RabbitMQ app.')
 
 
 def main():
@@ -115,13 +120,16 @@ def main():
                           version=version)
     parser.add_option('--verbose', action='store_true',
                       help='Enable verbose output.')
-    parser.add_option('--config', action='append', dest='configs',
+    parser.add_option('--config', action='append', metavar='FILE',
                       help='Check for nodes in this config file.')
+    parser.add_option('--forget-node', action='append', metavar='NODE',
+                      help='Permanently NODE from the cluster. '
+                      'Use with caution.')
     options, extra = parser.parse_args()
     expected_nodes = set(extra)
 
     cfg = SafeConfigParser()
-    cfg.read(options.configs or ['/etc/warren.conf'])
+    cfg.read(options.config or ['/etc/warren.conf'])
 
     try:
         cfg_nodes = cfg.get('warren', 'nodes')
@@ -136,15 +144,23 @@ def main():
     else:
         logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
+    ctl = RabbitMQCtl()
+
+    if options.forget_node:
+        for node in options.forget_node:
+            try:
+                ctl.forget_cluster_node(node)
+            except Exception as exc:
+                _log_error()
+                sys.exit(2)
+
     expected_nodes_str = ', '.join(expected_nodes)
     logging.info('Expected cluster nodes: {0}'.format(expected_nodes_str))
-
-    ctl = RabbitMQCtl()
 
     try:
         local_node, cluster_nodes = ctl.get_cluster_status()
     except Exception as exc:
-        logging.error(str(exc))
+        _log_error()
         sys.exit(2)
     expected_nodes.add(local_node)
 
@@ -163,7 +179,7 @@ def main():
                     ctl.join_cluster(node_name)
                     break
                 except Exception as exc:
-                    logging.error(str(exc))
+                    _log_error()
         else:
             logging.warning('Node could not be clustered.')
             sys.exit(2)
