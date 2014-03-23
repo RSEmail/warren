@@ -27,6 +27,7 @@ import subprocess
 import logging
 from socket import getfqdn
 from optparse import OptionParser
+from ConfigParser import SafeConfigParser, NoSectionError, NoOptionError
 
 from warren import __version__
 
@@ -102,22 +103,41 @@ class RabbitMQCtl(object):
 
 
 def main():
-    usage = 'Usage: %prog <nodes...>'
+    usage = 'Usage: %prog [options] [nodes...]'
     version = '%prog '+__version__
     description = 'Checks the current cluster status of the RabbitMQ node. ' \
         'If the node is unclustered, warren attempts to cluster with the ' \
-        'given list of RabbitMQ nodes.'
+        'given list of RabbitMQ nodes. Nodes can be provided on the ' \
+        'command line or by config file. Warren looks for configuration in ' \
+        '/etc/warren.conf by default. Config files look for a comma ' \
+        'delimited list \'nodes\' under section \'[warren]\'.'
     parser = OptionParser(usage=usage, description=description,
                           version=version)
     parser.add_option('--verbose', action='store_true',
                       help='Enable verbose output.')
+    parser.add_option('--config', action='append', dest='configs',
+                      help='Check for nodes in this config file.')
     options, extra = parser.parse_args()
-    known_nodes = set(extra)
+    expected_nodes = set(extra)
+
+    cfg = SafeConfigParser()
+    cfg.read(options.configs or ['/etc/warren.conf'])
+
+    try:
+        cfg_nodes = cfg.get('warren', 'nodes')
+    except (NoSectionError, NoOptionError):
+        pass
+    else:
+        for node in cfg_nodes.split(','):
+            expected_nodes.add(node.strip())
 
     if options.verbose:
         logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
     else:
         logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+
+    expected_nodes_str = ', '.join(expected_nodes)
+    logging.info('Expected cluster nodes: {0}'.format(expected_nodes_str))
 
     ctl = RabbitMQCtl()
 
@@ -126,17 +146,17 @@ def main():
     except Exception as exc:
         logging.error(str(exc))
         sys.exit(2)
-    known_nodes.add(local_node)
+    expected_nodes.add(local_node)
 
+    cluster_nodes_str = ', '.join(cluster_nodes)
     logging.info('Local cluster node: {0}'.format(local_node))
-    logging.info('Current cluster nodes: {0}'.format(', '.join(cluster_nodes)))
-    logging.info('Known cluster nodes: {0}'.format(', '.join(known_nodes)))
+    logging.info('Current cluster nodes: {0}'.format(cluster_nodes_str))
 
-    if cluster_nodes == known_nodes:
+    if cluster_nodes == expected_nodes:
         logging.info('This node is clustered correctly.')
 
     elif len(cluster_nodes) == 1:
-        for node_name in known_nodes:
+        for node_name in expected_nodes:
             if node_name != local_node:
                 logging.info('Attempting to join with: {0}'.format(node_name))
                 try:
