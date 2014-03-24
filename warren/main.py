@@ -155,9 +155,6 @@ def main():
                 _log_error()
                 sys.exit(2)
 
-    expected_nodes_str = ', '.join(expected_nodes)
-    logging.info('Expected cluster nodes: {0}'.format(expected_nodes_str))
-
     try:
         local_node, cluster_nodes = ctl.get_cluster_status()
     except Exception as exc:
@@ -165,7 +162,9 @@ def main():
         sys.exit(2)
     expected_nodes.add(local_node)
 
+    expected_nodes_str = ', '.join(expected_nodes)
     cluster_nodes_str = ', '.join(cluster_nodes)
+    logging.info('Expected cluster nodes: {0}'.format(expected_nodes_str))
     logging.info('Local cluster node: {0}'.format(local_node))
     logging.info('Current cluster nodes: {0}'.format(cluster_nodes_str))
 
