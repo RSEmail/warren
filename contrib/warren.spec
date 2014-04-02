@@ -1,16 +1,26 @@
+%define py_basever %{nil}
+
+%if 0%{?centos_version} == 505 || 0%{?rhel_version} == 505
+%define py_basever 26
+%global __python /usr/bin/python2.6
+%global python_sitelib /usr/lib/python2.6/site-packages
+%endif
+
+
 Name:           warren
-Version:        20140304
-Release:        1%{?dist}
+Version: 0.1.3
+Release: 18%{?dist}
 Summary:        Utility for managing a cluster of RabbitMQ nodes.
 Group:          Applications/System
 
 License:        MIT
 URL:            https://github.com/icgood/warren
 Source:         warren-%{version}.tar.gz
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 BuildArch:      noarch
-BuildRequires:  python, python-setuptools
-Requires:       python, python-setuptools
+BuildRequires:  python%{py_basever}, python%{py_basever}-setuptools
+Requires:       python%{py_basever}, python%{py_basever}-setuptools
 
 %description
 Utility for managing a cluster of RabbitMQ nodes.
@@ -34,3 +44,5 @@ Utility for managing a cluster of RabbitMQ nodes.
 %changelog
 * Tue Mar 04 2014 Ian Good <icgood@gmail.com> 20140304-1
 - Initial spec
+* Wed Apr 02 2014 Justin Witrick <github@thewitricks.com> 20140402-1
+- Updated spec for el5 builds
