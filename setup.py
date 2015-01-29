@@ -25,7 +25,7 @@ from setuptools import setup, find_packages
 
 
 setup(name='warren',
-      version='0.1.3',
+      version='0.1.4',
       author='Ian Good',
       author_email='icgood@gmail.com',
       description='Utility for managing a cluster of RabbitMQ nodes.',
