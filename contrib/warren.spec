@@ -42,7 +42,8 @@ Utility for managing a cluster of RabbitMQ nodes.
 /usr/bin/warren
 
 %changelog
-* Tue Mar 04 2014 Ian Good <icgood@gmail.com> 20140304-1
-- Initial spec
 * Wed Apr 02 2014 Justin Witrick <github@thewitricks.com> 20140402-1
 - Updated spec for el5 builds
+
+* Tue Mar 04 2014 Ian Good <icgood@gmail.com> 20140304-1
+- Initial spec
