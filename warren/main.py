@@ -72,9 +72,6 @@ class RabbitMQCtl(object):
             local_node = self._trim_quotes(match.group(1))
         else:
             raise Exception('Unexpected header line: {0!r}'.format(output[0]))
-        match = re.match('^...done', output[-1])
-        if not match:
-            raise Exception('Unexpected footer line: {0!r}'.format(output[-1]))
         cluster_info = ''.join(output[1:-1])
         match = re.search(r'{nodes,\[((?:{.*?\[.*?\]},?)+)\]}', cluster_info)
         if not match:
